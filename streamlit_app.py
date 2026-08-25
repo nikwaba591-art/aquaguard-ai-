@@ -17,6 +17,11 @@ except FileNotFoundError:
     st.error("water_points_scored.csv not found. Upload it to the same folder as this app (from Colab Cell 8/9).")
     st.stop()
 
+# Safety net: force numeric columns that sometimes load as text
+if "risk_pct" in df.columns:
+    df["risk_pct"] = pd.to_numeric(df["risk_pct"], errors="coerce")
+    df = df.dropna(subset=["risk_pct"])
+
 # ---- sidebar filters ----
 st.sidebar.header("Filters")
 districts = ["All"] + sorted(df["#adm2"].dropna().unique().tolist()) if "#adm2" in df.columns else ["All"]
@@ -37,6 +42,8 @@ col3.metric("High risk (>70%)", int((filtered['risk_pct'] > 70).sum()))
 
 # ---- map ----
 if "#lat_deg" in filtered.columns and "#lon_deg" in filtered.columns:
+    filtered["#lat_deg"] = pd.to_numeric(filtered["#lat_deg"], errors="coerce")
+    filtered["#lon_deg"] = pd.to_numeric(filtered["#lon_deg"], errors="coerce")
     map_df = filtered.dropna(subset=["#lat_deg", "#lon_deg"]).rename(
         columns={"#lat_deg": "lat", "#lon_deg": "lon"}
     )
